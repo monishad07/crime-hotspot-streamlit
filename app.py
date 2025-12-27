@@ -5,6 +5,11 @@ from streamlit_folium import st_folium
 from sklearn.cluster import KMeans
 from folium.plugins import HeatMap
 
+CLUSTER_COLORS = [
+    "red", "green", "purple", "orange", "darkred",
+    "cadetblue", "darkgreen", "darkpurple", "pink", "black"
+]
+
 # ---------------- Page Config ----------------
 st.set_page_config(
     page_title="Crime Hotspot Detection",
@@ -54,10 +59,10 @@ m = folium.Map(
 for _, row in coords.iterrows():
     folium.CircleMarker(
         location=[row["LATITUDE"], row["LONGITUDE"]],
-        radius=1,
-        color="gray",
+        radius=2,
+        color=CLUSTER_COLORS[row["cluster"] % len(CLUSTER_COLORS)],
         fill=True,
-        fill_opacity=0.3,
+        fill_opacity=0.5,
     ).add_to(m)
 
 # Optional heatmap
