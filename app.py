@@ -107,7 +107,6 @@ with col_legend:
             <span style="color:darkred;">●</span> Cluster 5<br><br>
 
             <b>🔵 Blue Circle</b> – Hotspot Center<br>
-            <b>🔥 Heatmap</b> – Crime Density
         </div>
         """,
         height=280,
