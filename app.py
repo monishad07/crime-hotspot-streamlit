@@ -26,9 +26,8 @@ k = st.slider("Select number of hotspots", 2, 10, 5)
 show_heatmap = st.checkbox("Show crime density heatmap")
 
 # Remove missing values
-coords = df[["LATITUDE", "LONGITUDE"]].dropna()
+coords = df[["LATITUDE", "LONGITUDE"]].dropna().copy()
 
-# Apply KMeans
 kmeans = KMeans(n_clusters=k, random_state=42)
 coords["cluster"] = kmeans.fit_predict(coords)
 
