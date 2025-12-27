@@ -4,6 +4,8 @@ import folium
 from streamlit_folium import folium_static
 from sklearn.cluster import KMeans
 from folium.plugins import HeatMap
+import streamlit.components.v1 as components
+
 
 # ---------------- Page Config ----------------
 st.set_page_config(
@@ -84,31 +86,32 @@ with col_map:
     folium_static(m, width=900, height=550)
 
 with col_legend:
-    st.markdown("""
-    <style>
-    .legend-box {
-        background-color: white;
-        padding: 15px;
-        border-radius: 10px;
-        border: 2px solid #ccc;
-        box-shadow: 2px 2px 10px rgba(0,0,0,0.2);
-    }
-    </style>
+    components.html(
+        """
+        <div style="
+            background-color: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #ccc;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.2);
+            font-family: Arial;
+            width: 100%;
+        ">
+            <h4>🗺️ Map Legend</h4>
 
-    <div class="legend-box">
-        <b>🗺️ Map Legend</b><br><br>
+            <b>Crime Clusters</b><br>
+            <span style="color:red;">●</span> Cluster 1<br>
+            <span style="color:green;">●</span> Cluster 2<br>
+            <span style="color:purple;">●</span> Cluster 3<br>
+            <span style="color:orange;">●</span> Cluster 4<br>
+            <span style="color:darkred;">●</span> Cluster 5<br><br>
 
-        <b>Crime Clusters</b><br>
-        <span style="color:red;">●</span> Cluster 1<br>
-        <span style="color:green;">●</span> Cluster 2<br>
-        <span style="color:purple;">●</span> Cluster 3<br>
-        <span style="color:orange;">●</span> Cluster 4<br>
-        <span style="color:darkred;">●</span> Cluster 5<br><br>
-
-        <b>🔵 Blue Circle</b> – Hotspot Center<br>
-        <b>🔥 Heatmap</b> – Crime Density
-    </div>
-    """, unsafe_allow_html=True)
+            <b>🔵 Blue Circle</b> – Hotspot Center<br>
+            <b>🔥 Heatmap</b> – Crime Density
+        </div>
+        """,
+        height=280,
+    )
 
 # ---------------- KPI SECTION ----------------
 st.subheader("📊 Crime Hotspot Insights")
