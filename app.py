@@ -29,7 +29,7 @@ st.sidebar.header("⚙️ Controls")
 k = st.sidebar.slider("Number of hotspots", 2, 10, 5)
 show_heatmap = st.sidebar.checkbox("Show crime density heatmap")
 
-# ---------------- Prepare Coordinates ----------------
+# ---------------- Prepare coordinates ----------------
 coords = df[["LATITUDE", "LONGITUDE"]].dropna().copy()
 
 # ---------------- KMeans Clustering ----------------
@@ -37,7 +37,7 @@ kmeans = KMeans(n_clusters=k, random_state=42)
 coords["cluster"] = kmeans.fit_predict(coords).astype(int)
 hotspots = kmeans.cluster_centers_
 
-# ---------------- Cluster Colors ----------------
+# ---------------- Color palette ----------------
 CLUSTER_COLORS = [
     "red", "green", "purple", "orange", "darkred",
     "cadetblue", "darkgreen", "darkpurple", "pink", "black"
@@ -60,11 +60,11 @@ for _, row in coords.iterrows():
         fill_opacity=0.5,
     ).add_to(m)
 
-# Heatmap layer
+# Heatmap
 if show_heatmap:
     HeatMap(coords[["LATITUDE", "LONGITUDE"]].values.tolist()).add_to(m)
 
-# Plot cluster centers
+# Hotspot centers
 for i, (lat, lon) in enumerate(hotspots):
     folium.CircleMarker(
         location=[lat, lon],
@@ -75,43 +75,42 @@ for i, (lat, lon) in enumerate(hotspots):
         popup=f"Hotspot {i + 1}",
     ).add_to(m)
 
-# ---------------- Legend ----------------
-legend_html = """
-<div style="
-position: fixed;
-bottom: 40px;
-left: 40px;
-width: 260px;
-background-color: white;
-border:2px solid grey;
-z-index:9999;
-font-size:14px;
-padding: 10px;
-border-radius: 8px;
-">
-
-<b>🗺️ Map Legend</b><br><br>
-
-<b>Colored Dots:</b> Crime Points (Clusters)<br>
-<span style="color:red;">●</span> Cluster 1<br>
-<span style="color:green;">●</span> Cluster 2<br>
-<span style="color:purple;">●</span> Cluster 3<br>
-<span style="color:orange;">●</span> Cluster 4<br>
-<span style="color:darkred;">●</span> Cluster 5<br><br>
-
-<b>🔵 Blue Circle:</b> Hotspot Center<br>
-<b>🔥 Heatmap:</b> Crime Density (Darker = Higher Crime)
-
-</div>
-"""
-
-m.get_root().html.add_child(folium.Element(legend_html))
-
-# ---------------- Display Map ----------------
+# ---------------- MAP + LEGEND LAYOUT ----------------
 st.subheader("📍 Crime Hotspot Map")
-folium_static(m, width=1000, height=550)
 
-# ---------------- KPI Section ----------------
+col_map, col_legend = st.columns([4, 1])
+
+with col_map:
+    folium_static(m, width=900, height=550)
+
+with col_legend:
+    st.markdown("""
+    <style>
+    .legend-box {
+        background-color: white;
+        padding: 15px;
+        border-radius: 10px;
+        border: 2px solid #ccc;
+        box-shadow: 2px 2px 10px rgba(0,0,0,0.2);
+    }
+    </style>
+
+    <div class="legend-box">
+        <b>🗺️ Map Legend</b><br><br>
+
+        <b>Crime Clusters</b><br>
+        <span style="color:red;">●</span> Cluster 1<br>
+        <span style="color:green;">●</span> Cluster 2<br>
+        <span style="color:purple;">●</span> Cluster 3<br>
+        <span style="color:orange;">●</span> Cluster 4<br>
+        <span style="color:darkred;">●</span> Cluster 5<br><br>
+
+        <b>🔵 Blue Circle</b> – Hotspot Center<br>
+        <b>🔥 Heatmap</b> – Crime Density
+    </div>
+    """, unsafe_allow_html=True)
+
+# ---------------- KPI SECTION ----------------
 st.subheader("📊 Crime Hotspot Insights")
 
 summary = coords.groupby("cluster").size().reset_index(name="Crime Count")
