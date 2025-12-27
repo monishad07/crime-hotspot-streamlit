@@ -47,14 +47,17 @@ colors = [
 ]
 
 # Plot crime points (cluster-colored)
+colors = ["red", "blue", "green", "purple", "orange", "darkred", "cadetblue"]
+
 for _, row in coords.iterrows():
     folium.CircleMarker(
         location=[row["LATITUDE"], row["LONGITUDE"]],
         radius=2,
-        color=colors[row["cluster"] % len(colors)],
+        color=colors[int(row["cluster"]) % len(colors)],
         fill=True,
         fill_opacity=0.5,
     ).add_to(m)
+
 
 # Plot hotspot centers
 for i, (lat, lon) in enumerate(hotspots):
