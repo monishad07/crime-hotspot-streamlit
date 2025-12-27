@@ -29,16 +29,15 @@ st.sidebar.header("⚙️ Controls")
 k = st.sidebar.slider("Number of hotspots", 2, 10, 5)
 show_heatmap = st.sidebar.checkbox("Show crime density heatmap")
 
-# ---------------- Prepare coordinates ----------------
+# ---------------- Prepare Coordinates ----------------
 coords = df[["LATITUDE", "LONGITUDE"]].dropna().copy()
 
 # ---------------- KMeans Clustering ----------------
 kmeans = KMeans(n_clusters=k, random_state=42)
 coords["cluster"] = kmeans.fit_predict(coords).astype(int)
-
 hotspots = kmeans.cluster_centers_
 
-# ---------------- Color palette ----------------
+# ---------------- Cluster Colors ----------------
 CLUSTER_COLORS = [
     "red", "green", "purple", "orange", "darkred",
     "cadetblue", "darkgreen", "darkpurple", "pink", "black"
@@ -52,9 +51,7 @@ m = folium.Map(
 
 # Plot crime points
 for _, row in coords.iterrows():
-    cluster_idx = int(row["cluster"])
-    color = CLUSTER_COLORS[cluster_idx % len(CLUSTER_COLORS)]
-
+    color = CLUSTER_COLORS[int(row["cluster"]) % len(CLUSTER_COLORS)]
     folium.CircleMarker(
         location=[row["LATITUDE"], row["LONGITUDE"]],
         radius=2,
@@ -63,11 +60,11 @@ for _, row in coords.iterrows():
         fill_opacity=0.5,
     ).add_to(m)
 
-# Optional Heatmap
+# Heatmap layer
 if show_heatmap:
     HeatMap(coords[["LATITUDE", "LONGITUDE"]].values.tolist()).add_to(m)
 
-# Plot hotspot centers
+# Plot cluster centers
 for i, (lat, lon) in enumerate(hotspots):
     folium.CircleMarker(
         location=[lat, lon],
@@ -79,40 +76,42 @@ for i, (lat, lon) in enumerate(hotspots):
     ).add_to(m)
 
 # ---------------- Legend ----------------
-legend_html = f"""
+legend_html = """
 <div style="
-    position: fixed; 
-    bottom: 50px; left: 50px; width: 260px;
-    background-color: white;
-    border:2px solid grey;
-    z-index:9999;
-    font-size:14px;
-    padding: 10px;
-    border-radius: 8px;
+position: fixed;
+bottom: 40px;
+left: 40px;
+width: 260px;
+background-color: white;
+border:2px solid grey;
+z-index:9999;
+font-size:14px;
+padding: 10px;
+border-radius: 8px;
 ">
+
 <b>🗺️ Map Legend</b><br><br>
 
-<b>Clusters (Crime Groups)</b><br>
+<b>Colored Dots:</b> Crime Points (Clusters)<br>
 <span style="color:red;">●</span> Cluster 1<br>
 <span style="color:green;">●</span> Cluster 2<br>
 <span style="color:purple;">●</span> Cluster 3<br>
 <span style="color:orange;">●</span> Cluster 4<br>
-<span style="color:darkred;">●</span> Cluster 5<br>
-<br>
+<span style="color:darkred;">●</span> Cluster 5<br><br>
 
-<b>🔵 Blue Circle</b> → Hotspot Center<br>
-<b>🔥 Heatmap</b> → Crime Density (Darker = More Crime)
+<b>🔵 Blue Circle:</b> Hotspot Center<br>
+<b>🔥 Heatmap:</b> Crime Density (Darker = Higher Crime)
+
 </div>
 """
 
 m.get_root().html.add_child(folium.Element(legend_html))
 
-
 # ---------------- Display Map ----------------
 st.subheader("📍 Crime Hotspot Map")
 folium_static(m, width=1000, height=550)
 
-# ---------------- KPI SECTION ----------------
+# ---------------- KPI Section ----------------
 st.subheader("📊 Crime Hotspot Insights")
 
 summary = coords.groupby("cluster").size().reset_index(name="Crime Count")
