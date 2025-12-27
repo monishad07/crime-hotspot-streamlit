@@ -84,22 +84,19 @@ for i, (lat, lon) in enumerate(hotspots):
 st.subheader("📍 Crime Hotspot Map")
 st_folium(m, width=1000, height=550)
 
-# ---------------- Hotspot summary ----------------
-st.subheader("📊 Hotspot Summary")
+# ---------------- Hotspot summary (KPI cards) ----------------
+st.subheader("📊 Crime Hotspot Insights")
 summary = coords.groupby("cluster").size().reset_index(name="Crime Count")
-summary["Hotspot"] = summary["cluster"] + 1
 
-def risk_level(count):
-    if count > 500:
-        return "High"
-    elif count > 200:
-        return "Medium"
-    else:
-        return "Low"
+# KPIs
+total_crimes = len(coords)
+active_hotspots = k
+most_dense_hotspot = summary["Crime Count"].max()
 
-summary["Risk Level"] = summary["Crime Count"].apply(risk_level)
-summary = summary[["Hotspot", "Crime Count", "Risk Level"]].sort_values("Hotspot")
-st.dataframe(summary, use_container_width=True)
+col1, col2, col3 = st.columns(3)
+col1.metric("Total Crime Points", total_crimes)
+col2.metric("Active Hotspots", active_hotspots)
+col3.metric("Most Dense Hotspot", most_dense_hotspot)
 
 st.markdown("---")
 st.caption("📌 Built using Streamlit, Folium & K-Means clustering")
