@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import folium
-from streamlit_folium import st_folium
+from streamlit_folium import folium_static
 from sklearn.cluster import KMeans
 from folium.plugins import HeatMap
 
@@ -110,7 +110,7 @@ m.get_root().html.add_child(folium.Element(legend_html))
 
 # ---------------- Display Map ----------------
 st.subheader("📍 Crime Hotspot Map")
-st_folium(m, width=1000, height=550)
+folium_static(m, width=1000, height=550)
 
 # ---------------- KPI SECTION ----------------
 st.subheader("📊 Crime Hotspot Insights")
