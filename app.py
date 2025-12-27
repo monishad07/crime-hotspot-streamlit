@@ -6,43 +6,17 @@ from sklearn.cluster import KMeans
 from folium.plugins import HeatMap
 import streamlit.components.v1 as components
 
+
 # ---------------- Page Config ----------------
 st.set_page_config(
-    page_title="Chicago Crime Hotspot Analysis",
-    layout="wide",
+    page_title="Crime Hotspot Detection",
+    layout="wide"
 )
 
-# ---------------- Custom CSS for Styling ----------------
+st.title("🚨 Crime Hotspot Detection – Chicago")
 st.markdown(
-    """
-    <style>
-    /* Sidebar styling */
-    .sidebar .sidebar-content {
-        background-color: #f0f2f6;
-        padding: 20px;
-        border-radius: 12px;
-    }
-    /* Title styling */
-    .stApp h1 {
-        color: #1f2937;
-        font-size: 2.2rem;
-        font-weight: 700;
-    }
-    .stApp h2 {
-        color: #111827;
-    }
-    .metric-label, .stMetric {
-        font-size: 1.1rem;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
-# ---------------- Page Title ----------------
-st.title("Chicago Crime Hotspot Analysis")
-st.markdown(
-    "Visualize and explore **crime hotspots** in Chicago with interactive mapping and clustering insights.",
+    "This application identifies **crime hotspots** in Chicago using K-Means clustering "
+    "and visualizes crime density on an interactive map."
 )
 
 # ---------------- Load Data ----------------
@@ -52,12 +26,10 @@ def load_data():
 
 df = load_data()
 
-# ---------------- Sidebar ----------------
-st.sidebar.header("Controls")
-st.sidebar.markdown("Adjust clustering and visualization options:")
-
-k = st.sidebar.slider("Number of Hotspots", 2, 10, 5)
-show_heatmap = st.sidebar.checkbox("Show Crime Density Heatmap")
+# ---------------- Sidebar Controls ----------------
+st.sidebar.header("⚙️ Controls")
+k = st.sidebar.slider("Number of hotspots", 2, 10, 5)
+show_heatmap = st.sidebar.checkbox("Show crime density heatmap")
 
 # ---------------- Prepare coordinates ----------------
 coords = df[["LATITUDE", "LONGITUDE"]].dropna().copy()
@@ -69,45 +41,45 @@ hotspots = kmeans.cluster_centers_
 
 # ---------------- Color palette ----------------
 CLUSTER_COLORS = [
-    "#EF4444", "#10B981", "#8B5CF6", "#F59E0B", "#B91C1C",
-    "#3B82F6", "#059669", "#7C3AED", "#EC4899", "#000000"
+    "red", "green", "purple", "orange", "darkred",
+    "cadetblue", "darkgreen", "darkpurple", "pink", "black"
 ]
 
 # ---------------- Create Map ----------------
 m = folium.Map(
     location=[coords["LATITUDE"].mean(), coords["LONGITUDE"].mean()],
-    zoom_start=10,
-    tiles="CartoDB positron",
+    zoom_start=10
 )
 
-# Crime points
+# Plot crime points
 for _, row in coords.iterrows():
     color = CLUSTER_COLORS[int(row["cluster"]) % len(CLUSTER_COLORS)]
     folium.CircleMarker(
         location=[row["LATITUDE"], row["LONGITUDE"]],
-        radius=3,
+        radius=2,
         color=color,
         fill=True,
-        fill_opacity=0.6,
+        fill_opacity=0.5,
     ).add_to(m)
 
-# Heatmap overlay
+# Heatmap
 if show_heatmap:
-    HeatMap(coords[["LATITUDE", "LONGITUDE"]].values.tolist(), radius=15).add_to(m)
+    HeatMap(coords[["LATITUDE", "LONGITUDE"]].values.tolist()).add_to(m)
 
 # Hotspot centers
 for i, (lat, lon) in enumerate(hotspots):
     folium.CircleMarker(
         location=[lat, lon],
-        radius=12,
-        color="#2563EB",
+        radius=14,
+        color="blue",
         fill=True,
         fill_opacity=0.9,
-        popup=f"Hotspot {i+1}",
+        popup=f"Hotspot {i + 1}",
     ).add_to(m)
 
-# ---------------- Map + Legend Layout ----------------
-st.subheader("Crime Hotspot Map")
+# ---------------- MAP + LEGEND LAYOUT ----------------
+st.subheader("📍 Crime Hotspot Map")
+
 col_map, col_legend = st.columns([4, 1])
 
 with col_map:
@@ -117,30 +89,32 @@ with col_legend:
     components.html(
         """
         <div style="
-            background-color: #ffffff;
+            background-color: white;
             padding: 15px;
             border-radius: 10px;
-            border: 1px solid #d1d5db;
-            box-shadow: 1px 1px 8px rgba(0,0,0,0.1);
+            border: 2px solid #ccc;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.2);
             font-family: Arial;
-            font-size: 0.95rem;
+            width: 100%;
         ">
-            <h4 style="margin-bottom:10px; color:#111827;">Map Legend</h4>
+            <h4>🗺️ Map Legend</h4>
+
             <b>Crime Clusters</b><br>
-            <span style="color:#EF4444;">●</span> Cluster 1<br>
-            <span style="color:#10B981;">●</span> Cluster 2<br>
-            <span style="color:#8B5CF6;">●</span> Cluster 3<br>
-            <span style="color:#F59E0B;">●</span> Cluster 4<br>
-            <span style="color:#B91C1C;">●</span> Cluster 5<br><br>
-            <b style="color:#2563EB;">● Blue Circle</b> Hotspot Center<br>
-            <b>🔥 Heatmap</b> Crime Density (Darker = Higher)
+            <span style="color:red;">●</span> Cluster 1<br>
+            <span style="color:green;">●</span> Cluster 2<br>
+            <span style="color:purple;">●</span> Cluster 3<br>
+            <span style="color:orange;">●</span> Cluster 4<br>
+            <span style="color:darkred;">●</span> Cluster 5<br><br>
+
+            <b>🔵 Blue Circle</b> – Hotspot Center<br>
         </div>
         """,
         height=280,
     )
 
-# ---------------- KPI Section ----------------
-st.subheader("Crime Hotspot Insights")
+# ---------------- KPI SECTION ----------------
+st.subheader("📊 Crime Hotspot Insights")
+
 summary = coords.groupby("cluster").size().reset_index(name="Crime Count")
 
 total_crimes = len(coords)
@@ -152,9 +126,10 @@ col1.metric("Total Crime Points", total_crimes)
 col2.metric("Active Hotspots", active_hotspots)
 col3.metric("Most Dense Hotspot", most_dense_hotspot)
 
-# ---------------- Optional Detailed Table ----------------
-st.markdown("### Detailed Hotspot Breakdown")
-show_table = st.checkbox("Show Table")
+# ---------------- Optional Table ----------------
+st.markdown("### 📋 Detailed Hotspot Breakdown")
+show_table = st.checkbox("Show detailed table")
+
 if show_table:
     summary["Hotspot"] = summary["cluster"] + 1
 
@@ -168,7 +143,8 @@ if show_table:
 
     summary["Risk Level"] = summary["Crime Count"].apply(risk_level)
     summary = summary[["Hotspot", "Crime Count", "Risk Level"]]
+
     st.dataframe(summary, use_container_width=True)
 
 st.markdown("---")
-st.caption("Built with Streamlit, Folium, and K-Means clustering")
+st.caption("📌 Built using Streamlit, Folium & K-Means clustering")
