@@ -6,7 +6,10 @@ from sklearn.cluster import KMeans
 from folium.plugins import HeatMap
 
 # ---------------- Page Config ----------------
-st.set_page_config(page_title="Crime Hotspot Detection", layout="wide")
+st.set_page_config(
+    page_title="Crime Hotspot Detection",
+    layout="wide"
+)
 
 st.title("🚨 Crime Hotspot Detection – Chicago")
 st.markdown(
@@ -23,35 +26,21 @@ df = load_data()
 
 # ---------------- Sidebar Controls ----------------
 st.sidebar.header("⚙️ Controls")
-
-# 👉 Crime type filter (NEW)
-crime_types = st.sidebar.multiselect(
-    "Select Crime Type",
-    sorted(df["PRIMARY_TYPE"].dropna().unique()),
-    default=[df["PRIMARY_TYPE"].dropna().unique()[0]]
-)
-
 k = st.sidebar.slider("Number of hotspots", 2, 10, 5)
 show_heatmap = st.sidebar.checkbox("Show crime density heatmap")
 
-# ---------------- Apply crime filter ----------------
-filtered_df = df[df["PRIMARY_TYPE"].isin(crime_types)]
-
 # ---------------- Prepare coordinates ----------------
-coords = filtered_df[["LATITUDE", "LONGITUDE"]].dropna().copy()
-
-# Safety check
-if coords.empty:
-    st.warning("No data available for selected crime type(s).")
-    st.stop()
+# Use a copy so we can safely assign new columns
+coords = df[["LATITUDE", "LONGITUDE"]].dropna().copy()
 
 # ---------------- KMeans Clustering ----------------
 kmeans = KMeans(n_clusters=k, random_state=42)
+# fit_predict returns numeric labels; convert explicitly to int dtype
 coords["cluster"] = kmeans.fit_predict(coords).astype(int)
 
 hotspots = kmeans.cluster_centers_
 
-# ---------------- Color palette ----------------
+# ---------------- Color palette for clusters ----------------
 CLUSTER_COLORS = [
     "red", "green", "purple", "orange", "darkred",
     "cadetblue", "darkgreen", "darkpurple", "pink", "black"
@@ -63,8 +52,9 @@ m = folium.Map(
     zoom_start=10
 )
 
-# Plot crime points
+# Plot crime points colored by cluster
 for _, row in coords.iterrows():
+    # ensure cluster index is an int (defensive)
     cluster_idx = int(row["cluster"])
     color = CLUSTER_COLORS[cluster_idx % len(CLUSTER_COLORS)]
     folium.CircleMarker(
@@ -75,11 +65,11 @@ for _, row in coords.iterrows():
         fill_opacity=0.5,
     ).add_to(m)
 
-# Optional heatmap
+# Optional heatmap overlay
 if show_heatmap:
     HeatMap(coords[["LATITUDE", "LONGITUDE"]].values.tolist()).add_to(m)
 
-# Plot hotspot centers
+# Plot hotspot centers (blue)
 for i, (lat, lon) in enumerate(hotspots):
     folium.CircleMarker(
         location=[lat, lon],
@@ -109,7 +99,6 @@ def risk_level(count):
 
 summary["Risk Level"] = summary["Crime Count"].apply(risk_level)
 summary = summary[["Hotspot", "Crime Count", "Risk Level"]].sort_values("Hotspot")
-
 st.dataframe(summary, use_container_width=True)
 
 st.markdown("---")
