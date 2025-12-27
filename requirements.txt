@@ -1,6 +1,6 @@
-streamlit
+streamlit==1.32.0
+streamlit-folium==0.18.0
+folium==0.15.1
 pandas
-folium
-streamlit-folium
 scikit-learn
 
