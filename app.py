@@ -78,6 +78,36 @@ for i, (lat, lon) in enumerate(hotspots):
         popup=f"Hotspot {i + 1}",
     ).add_to(m)
 
+# ---------------- Legend ----------------
+legend_html = f"""
+<div style="
+    position: fixed; 
+    bottom: 50px; left: 50px; width: 260px;
+    background-color: white;
+    border:2px solid grey;
+    z-index:9999;
+    font-size:14px;
+    padding: 10px;
+    border-radius: 8px;
+">
+<b>🗺️ Map Legend</b><br><br>
+
+<b>Clusters (Crime Groups)</b><br>
+<span style="color:red;">●</span> Cluster 1<br>
+<span style="color:green;">●</span> Cluster 2<br>
+<span style="color:purple;">●</span> Cluster 3<br>
+<span style="color:orange;">●</span> Cluster 4<br>
+<span style="color:darkred;">●</span> Cluster 5<br>
+<br>
+
+<b>🔵 Blue Circle</b> → Hotspot Center<br>
+<b>🔥 Heatmap</b> → Crime Density (Darker = More Crime)
+</div>
+"""
+
+m.get_root().html.add_child(folium.Element(legend_html))
+
+
 # ---------------- Display Map ----------------
 st.subheader("📍 Crime Hotspot Map")
 st_folium(m, width=1000, height=550)
